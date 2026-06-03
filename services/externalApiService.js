@@ -8,39 +8,52 @@ const BASE_URL = process.env.EXTERNAL_API_BASE_URL || 'https://t4e-testserver.on
  */
 const fetchExternalData = async (token) => {
   try {
-    // If no token provided, try to obtain one using student credentials
-    let authToken = token;
+    let authToken = null;
+    let dataUrl = '/private/data';
 
-    if (!authToken) {
-      const studentId = process.env.STUDENT_ID;
-      const password = process.env.STUDENT_PASSWORD;
+    // ALWAYS prefer env credentials if available, because frontend passes local user session token
+    const studentId = process.env.STUDENT_ID;
+    const password = process.env.STUDENT_PASSWORD;
 
-      if (studentId && password) {
-        const tokenResponse = await axios.post(`${BASE_URL}/public/token`, {
-          studentId,
-          password,
-        });
-        authToken = tokenResponse.data.token;
-      }
+    if (studentId && password) {
+      console.log(`Fetching external token for student: ${studentId}...`);
+      const tokenResponse = await axios.post(`${BASE_URL}/public/token`, {
+        studentId,
+        password,
+        set: 'setB'
+      });
+      authToken = tokenResponse.data.token;
+      dataUrl = tokenResponse.data.dataUrl || '/private/data';
+    } else if (token) {
+      // Fallback to passed-in token if no env credentials
+      authToken = token;
     }
 
     if (!authToken) {
-      // Return mock data for development when no token is available
       console.log('No token available - returning mock issue data for development');
       return getMockData();
     }
 
-    // Fetch private data using token
-    const response = await axios.get(`${BASE_URL}/private/data`, {
+    console.log(`Fetching private data from: ${dataUrl}...`);
+    const response = await axios.get(`${BASE_URL}${dataUrl}`, {
       headers: {
         Authorization: `Bearer ${authToken}`,
       },
     });
 
-    return response.data;
+    const resData = response.data;
+    if (resData && resData.data && Array.isArray(resData.data.issues)) {
+      console.log(`Found issues array in dataset. Extracted ${resData.data.issues.length} issues.`);
+      return resData.data.issues;
+    } else if (Array.isArray(resData)) {
+      return resData;
+    } else if (resData && Array.isArray(resData.data)) {
+      return resData.data;
+    }
+
+    return getMockData();
   } catch (error) {
     console.error('External API error:', error.response?.data?.message || error.message);
-    // Fall back to mock data if external API fails
     console.log('Falling back to mock issue data');
     return getMockData();
   }

@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']); // Fixes ECONNREFUSED on Atlas SRV lookups
+
 require('dotenv').config();
 const mongoose = require('mongoose');
 const app = require('./app');
