@@ -6,6 +6,14 @@ const { getHealth } = require('../controllers/issueController');
 
 const router = express.Router();
 
+// Welcome Route
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: "Welcome to the Issue/Bug Tracker API. The backend is running successfully!"
+  });
+});
+
 // Health Check API
 router.get('/health', getHealth);
 
