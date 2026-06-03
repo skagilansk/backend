@@ -15,6 +15,9 @@ router.use('/auth', authRoutes);
 // Issue Routes (includes /sync, /stats, /issues/*)
 router.use('/', issueRoutes);
 
+// User Routes
+router.use('/users', require('./userRoutes'));
+
 // Comment Routes
 router.use('/comments', commentRoutes);
 

@@ -29,6 +29,15 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'manager', 'developer'],
     default: 'developer',
   },
+  department: {
+    type: String,
+    trim: true,
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active',
+  },
 }, { timestamps: true });
 
 // Hash password before saving
